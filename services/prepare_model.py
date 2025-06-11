@@ -34,6 +34,7 @@ def model_predict(path_to_file):
 
     # endcoding
     label_encoder = LabelEncoder()
+    df_dish = df['Блюдо'].copy()
     df['Блюдо'] = label_encoder.fit_transform(df['Блюдо'])
 
     # load models
@@ -45,6 +46,17 @@ def model_predict(path_to_file):
     redicted_value = model.predict(new_df_scaled)
 
     df["закупка"] = np.round(redicted_value)
+    df['Блюдо'] = df_dish
+
+    clean = [
+        "Дата запуска", "Количество повторных продаж", "Стоимость по меню",
+        "Фактическая цена реализации за ед", "Продано количество",
+        "Подарено по акции", "Количество продаж с уценкой",
+        "Кол-во товаров проданных по спец цене ПЛ", "Кол-во товаров проданных за живчики",
+        "Кол-во списаний", "CustomersInMonh"
+    ]
+
+    df.drop(clean, axis=1, inplace=True)
 
     return df
 
