@@ -1,3 +1,4 @@
+import requests
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -16,6 +17,8 @@ origins = [
     "http://localhost:8080",
 ]
 
+URL = "http://localhost:8080/api/product/create"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -23,6 +26,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.post("/predict", response_model=List[Dict])
 async def predict(file: UploadFile = File(...,
@@ -41,9 +45,22 @@ async def predict(file: UploadFile = File(...,
         os.unlink(tmp_path)
 
         result = result_df.to_dict(orient='records')
+        json_result = jsonable_encoder(result)
+
+        response = requests.post(
+            URL,
+            json=json_result,
+            headers={"Content-Type": "application/json"}
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Ошибка при отправке данных на сервис: {response.text}"
+            )
 
         return JSONResponse(
-            content=jsonable_encoder(result),
+            content=json_result,
             media_type="application/json; charset=utf-8"
         )
 
